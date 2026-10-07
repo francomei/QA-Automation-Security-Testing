@@ -33,6 +33,15 @@ jobs:
 
           npx wait-on http://127.0.0.1:3000
 
+      - name: Create test user
+        run: |
+          curl -X POST http://127.0.0.1:3000/api/Users/ \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\",\"passwordRepeat\":\"${TEST_USER_PASSWORD}\",\"securityQuestion\":{\"id\":1},\"securityAnswer\":\"test\"}"
+        env:
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
       - name: Run Playwright tests
         run: npx playwright test
         env:
