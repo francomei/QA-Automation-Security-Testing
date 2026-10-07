@@ -1,23 +1,33 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { JuiceShopLoginPage } from "../../src/pages/juiceShopLoginPage";
 
-test('DOM-XSS - Search Alert', async ({ page }) => {
+test("DOM-XSS - Search Alert", async ({ page }) => {
   let xssTriggered = false;
 
-  page.on('dialog', async dialog => {
+  page.on("dialog", async (dialog) => {
     xssTriggered = true;
     await dialog.dismiss();
   });
+  
+  const loginPage = new JuiceShopLoginPage(page);
 
-  await page.goto('/');
+  // Login
+  await loginPage.navigate();
+  await loginPage.openLogin();
 
-  await page.locator('.search-area mat-icon').first().click();
+  await loginPage.login(
+    process.env.TEST_USER_EMAIL!,
+    process.env.TEST_USER_PASSWORD!,
+  );
 
-  const searchInput = page.getByRole('textbox');
+  await page.locator(".search-area mat-icon").first().click();
+
+  const searchInput = page.getByRole("textbox");
 
   await searchInput.fill('<iframe src="javascript:alert(`xss`)">');
-  await searchInput.press('Enter');
+  await searchInput.press("Enter");
 
   await page.waitForTimeout(1000);
 
-  expect(xssTriggered).toBe(false);
+  await expect.poll(() => xssTriggered, { timeout: 5000 }).toBe(true);
 });
